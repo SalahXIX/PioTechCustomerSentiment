@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
+import torch
 
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
                "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
@@ -9,8 +10,8 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
                "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
-
-generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100)
+device = 0 if torch.cuda.is_available() else -1
+generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100, device=device)
 
 def invoke_model(prompt):
     output = generator(prompt)[0]["generated_text"]
