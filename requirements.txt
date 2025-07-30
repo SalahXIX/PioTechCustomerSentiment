@@ -1,4 +1,4 @@
 transformers>=4.36.2
 torch>=2.0.1
-sentencepiece
+sentencepiece==0.1.99
 streamlit
