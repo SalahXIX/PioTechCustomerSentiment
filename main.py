@@ -5,6 +5,11 @@ from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 
+
+st.write(f"CUDA available? {torch.cuda.is_available()}")
+st.write(f"Device count: {torch.cuda.device_count()}")
+st.write(f"Current device: {torch.cuda.current_device() if torch.cuda.is_available() else 'CPU'}")
+
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
                "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
                "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
@@ -19,8 +24,8 @@ model = AutoModelForSeq2SeqLM.from_pretrained(
     torch_dtype=torch.float32,  
     low_cpu_mem_usage=False,    
 )
-device = 0 if torch.cuda.is_available() else -1
-generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100, device=device)
+
+generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100, device=-1)
 
 def invoke_model(prompt):
     output = generator(prompt)[0]["generated_text"]
