@@ -15,11 +15,11 @@ intent_list = sorted(intent_list, key=lambda x: -len(x))
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
 
-model_name = "google/flan-t5-small"
-generator = pipeline("text2text-generation", model=model_name, device=-1)
+sentiment_model = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
+intent_classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
 
 def invoke_model(prompt):
-    output = generator(prompt)[0]["generated_text"]
+    output = sentiment_model(prompt)[0]["generated_text"]
     return output.replace(prompt, "").strip()
 
 Sentiment_Template= '''
@@ -44,22 +44,19 @@ def first_interperter(Answer):
             return option
     return "Unclear"    
 
+
 def second_interperter(Answer):
     Answer = str(Answer).strip().lower()
-
     for intent in intent_list:
         if Answer == intent.lower():
             return intent
-
     for intent in intent_list:
         if intent.lower() in Answer:
             return intent
-
     for intent in intent_list:
         keywords = intent.lower().replace("/", "").split()
         if any(word in Answer for word in keywords):
             return intent
-
     return "Unclear"
 
         
@@ -71,12 +68,16 @@ def Read_Texts(MarkdownPath):
     return TextList    
 
 def Evaluate_Texts(TextList):
-    results=[]
+    results = []
     for text in TextList:
+
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
         sentiment = first_interperter(invoke_model(Sentiment_Prompt))
-        Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
-        intent = second_interperter(invoke_model((Intent_Prompt)))
+
+        classification = intent_classifier(text, intent_list, multi_label=False)
+        top_intent = classification["labels"][0]
+        intent = second_interperter(top_intent)
+
         entry = {
             "Email_Text": text,
             "Sentiment": sentiment,
