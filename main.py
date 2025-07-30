@@ -57,9 +57,11 @@ def second_interperter(Answer):
 
 def Read_Texts(MarkdownPath):
     TextList = []
-    with open(MarkdownPath, 'r') as f:
-        TextList.extend(line.strip() for line in f if line.strip())    
-    return TextList    
+    for line in uploaded_file:
+        decoded_line = line.decode('utf-8').strip()
+        if decoded_line:
+            TextList.append(decoded_line)
+    return TextList
 
 def Evaluate_Texts(TextList):
     results=[]
