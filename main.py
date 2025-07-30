@@ -13,7 +13,7 @@ intent_list = sorted(intent_list, key=lambda x: -len(x))
 
 
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
-model_name = "tiiuae/falcon-rw-1b"
+
 
 model_name = "google/flan-t5-small"
 generator = pipeline("text2text-generation", model=model_name, device=-1)
@@ -30,11 +30,12 @@ Your answer (only choose from the provided list):
 '''
 
 
-Intent_Template= '''
-You are an intent Analyzer AI, you analyze the text given to you and figure out what the reason it was sent.
-You choose the intent that most closely matches the intent of the text you are provided based on the following options: {intent_list}.
-The text: {text}
-Your answer (only choose from the provided list):
+Intent_Template = '''
+You are an intent classification AI. You must classify the intent of the following text into one of these labels:
+{intent_list}.
+Only output the exact intent label — nothing else.
+Text: "{text}"
+Intent:
 '''
 
 def first_interperter(Answer):
@@ -47,11 +48,16 @@ def second_interperter(Answer):
     Answer = str(Answer).strip().lower()
 
     for intent in intent_list:
+        if Answer == intent.lower():
+            return intent
+
+    for intent in intent_list:
         if intent.lower() in Answer:
             return intent
 
     for intent in intent_list:
-        if any(word in Answer for word in intent.lower().split()):
+        keywords = intent.lower().replace("/", "").split()
+        if any(word in Answer for word in keywords):
             return intent
 
     return "Unclear"
