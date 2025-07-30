@@ -10,7 +10,7 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
 
-generator = pipeline("text-generation", model="tiiuae/falcon-7b-instruct", max_new_tokens=100)
+generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100)
 
 def invoke_model(prompt):
     output = generator(prompt)[0]["generated_text"]
