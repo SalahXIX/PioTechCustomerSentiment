@@ -1,4 +1,3 @@
+streamlit==1.47.1
 transformers==4.40.2
-torch>=2.0.1
-streamlit
-tokenizers==0.19.1
+torch==2.2.2
