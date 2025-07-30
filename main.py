@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 
@@ -18,7 +18,7 @@ sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused
 model_name = "tiiuae/falcon-rw-1b"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSeq2SeqLM.from_pretrained(
+model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map=None,        
     torch_dtype=torch.float32,  
