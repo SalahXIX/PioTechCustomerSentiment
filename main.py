@@ -54,7 +54,6 @@ def Read_Texts(MarkdownPath):
 def Evaluate_Texts(TextList):
     results=[]
     for text in TextList:
-        results.append(text)
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
         sentiment = first_interperter(invoke_model(Sentiment_Prompt))
         Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
