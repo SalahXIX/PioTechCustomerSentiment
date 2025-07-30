@@ -8,6 +8,10 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
                "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
                "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
                "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
+
+intent_list = sorted(intent_list, key=lambda x: -len(x))
+
+
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 model_name = "tiiuae/falcon-rw-1b"
 
@@ -40,10 +44,17 @@ def first_interperter(Answer):
     return "Unclear"    
 
 def second_interperter(Answer):
-    for option in intent_list:
-        if option.lower() in str(Answer).strip().lower():
-            return option
-    return "Unclear"    
+    Answer = str(Answer).strip().lower()
+
+    for intent in intent_list:
+        if intent.lower() in Answer:
+            return intent
+
+    for intent in intent_list:
+        if any(word in Answer for word in intent.lower().split()):
+            return intent
+
+    return "Unclear"
 
         
 
