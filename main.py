@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
+import difflib
 
 
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
@@ -11,15 +12,13 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
 
 intent_list = sorted(intent_list, key=lambda x: -len(x))
 
-
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
-
-sentiment_model = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
-intent_classifier = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-3", device=-1)
+model_name = "google/flan-t5-small"
+generator = pipeline("text2text-generation", model=model_name, device=-1)
 
 def invoke_model(prompt):
-    output = sentiment_model(prompt)[0]["generated_text"]
+    output = generator(prompt)[0]["generated_text"]
     return output.replace(prompt, "").strip()
 
 Sentiment_Template= '''
@@ -30,12 +29,12 @@ Your answer (only choose from the provided list):
 '''
 
 
-Intent_Template = '''
-You are an intent classification AI. You must classify the intent of the following text into one of these labels:
-{intent_list}.
-Only output the exact intent label — nothing else.
-Text: "{text}"
-Intent:
+Intent_Template= '''
+You are an intent Analyzer AI, you analyze the text given to you and figure out what the reason it was sent.
+You choose the intent that most closely matches the intent of the text you are provided based on the following options: {intent_list}.
+The text: {text}
+Respond with only the exact matching phrase from the list. No explanation.
+Your answer (only choose from the provided list):
 '''
 
 def first_interperter(Answer):
@@ -44,20 +43,14 @@ def first_interperter(Answer):
             return option
     return "Unclear"    
 
-
 def second_interperter(Answer):
-    Answer = str(Answer).strip().lower()
-    for intent in intent_list:
-        if Answer == intent.lower():
-            return intent
-    for intent in intent_list:
-        if intent.lower() in Answer:
-            return intent
-    for intent in intent_list:
-        keywords = intent.lower().replace("/", "").split()
-        if any(word in Answer for word in keywords):
-            return intent
-    return "Unclear"
+    Answer = Answer.strip().lower()
+    matches = difflib.get_close_matches(Answer, [i.lower() for i in intent_list], n=1, cutoff=0.6)
+    if matches:
+        for intent in intent_list:
+            if intent.lower() == matches[0]:
+                return intent
+    return "Unclear" 
 
         
 
@@ -68,16 +61,12 @@ def Read_Texts(MarkdownPath):
     return TextList    
 
 def Evaluate_Texts(TextList):
-    results = []
+    results=[]
     for text in TextList:
-
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
         sentiment = first_interperter(invoke_model(Sentiment_Prompt))
-
-        classification = intent_classifier(text, intent_list, multi_label=False)
-        top_intent = classification["labels"][0]
-        intent = second_interperter(top_intent)
-
+        Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
+        intent = second_interperter(invoke_model((Intent_Prompt)))
         entry = {
             "Email_Text": text,
             "Sentiment": sentiment,
@@ -115,7 +104,7 @@ if input_mode == "Manual Input":
     if user_input:
         textlist = [line.strip() for line in user_input.splitlines() if line.strip()]
 else:
-    uploaded_file = st.file_uploader("Upload a `.txt` or `.md` file", type=["txt", "md"])
+    uploaded_file = st.file_uploader("Upload a .txt or .md file", type=["txt", "md"])
     if uploaded_file is not None:
         textlist = Read_Texts(uploaded_file)
 
@@ -131,7 +120,7 @@ if st.button("Classify Text"):
         for entry in results:
             st.markdown("---")
             st.markdown(f"**Text:** {entry['Email_Text']}")
-            st.markdown(f"**Sentiment:** `{entry['Sentiment']}`")
-            st.markdown(f"**Intent:** `{entry['Intent']}`")
+            st.markdown(f"**Sentiment:** {entry['Sentiment']}")
+            st.markdown(f"**Intent:** {entry['Intent']}")
 
         
