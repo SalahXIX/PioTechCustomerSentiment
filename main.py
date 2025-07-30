@@ -1,4 +1,4 @@
-import streamlit
+import streamlit as st
 from langchain_community.llms import ollama
 import json
 import os
@@ -78,5 +78,39 @@ def save_responses(responses, filename="CustomerSentiment.json"):
 
 textlist = Read_Texts("/Users/salahalalix/Desktop/pio-tech/Sentiment_Analyzer/Examples.md")
 result = Evaluate_Texts(textlist)
+
+st.set_page_config(page_title="Customer Sentiment Analyzer", layout="centered")
+
+st.markdown("<h1 style='text-align: center;'>📊 Customer Sentiment & Intent Analyzer</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Analyze customer feedback/Emails for sentiment and purpose using AI</p>", unsafe_allow_html=True)
+
+
+input_mode = st.radio("Choose input method:", ["Manual Input", "Upload File"])
+
+textlist = []
+
+if input_mode == "Manual Input":
+    user_input = st.text_area("Enter one or more sentences (one per line):")
+    if user_input:
+        textlist = [line.strip() for line in user_input.splitlines() if line.strip()]
+else:
+    uploaded_file = st.file_uploader("Upload a `.txt` or `.md` file", type=["txt", "md"])
+    if uploaded_file is not None:
+        textlist = Read_Texts(uploaded_file)
+
+# Run classification
+if st.button("Classify Text"):
+    if not textlist:
+        st.warning("Please enter text or upload a file before classifying.")
+    else:
+        with st.spinner("Analyzing..."):
+            results = Evaluate_Texts(textlist)
+        st.success("Analysis complete!")
+
+        for entry in results:
+            st.markdown("---")
+            st.markdown(f"**Text:** {entry['Email_Text']}")
+            st.markdown(f"**Sentiment:** `{entry['Sentiment']}`")
+            st.markdown(f"**Intent:** `{entry['Intent']}`")
 
         
