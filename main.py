@@ -1,7 +1,7 @@
 import streamlit as st
-from langchain_community.llms import ollama
 import json
 import os
+from transformers import pipeline
 
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
                "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
@@ -9,8 +9,12 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
                "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
-model = ollama.Ollama(model="llama3")
 
+generator = pipeline("text-generation", model="tiiuae/falcon-7b-instruct", max_new_tokens=100)
+
+def invoke_model(prompt):
+    output = generator(prompt)[0]["generated_text"]
+    return output.replace(prompt, "").strip()
 
 Sentiment_Template= '''
 You are a Sentiment Analyzer AI, you analyze the text given to you and figure out its sentiment/tone.
@@ -52,9 +56,9 @@ def Evaluate_Texts(TextList):
     for text in TextList:
         results.append(text)
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
-        sentiment = first_interperter(model.invoke(Sentiment_Prompt))
+        sentiment = first_interperter(invoke_model(Sentiment_Prompt))
         Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
-        intent = second_interperter(model.invoke(Intent_Prompt))
+        intent = second_interperter(invoke_model((Intent_Prompt)))
         entry = {
             "Email_Text": text,
             "Sentiment": sentiment,
@@ -76,8 +80,6 @@ def save_responses(responses, filename="CustomerSentiment.json"):
     with open(filename, "w") as f:
         json.dump(existing, f, indent=2)
 
-textlist = Read_Texts("/Users/salahalalix/Desktop/pio-tech/Sentiment_Analyzer/Examples.md")
-result = Evaluate_Texts(textlist)
 
 st.set_page_config(page_title="Customer Sentiment Analyzer", layout="centered")
 
