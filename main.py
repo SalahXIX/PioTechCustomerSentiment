@@ -25,7 +25,7 @@ model = AutoModelForSeq2SeqLM.from_pretrained(
     low_cpu_mem_usage=False,    
 )
 
-generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100, device=-1)
+generator = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=100, device=-1)
 
 def invoke_model(prompt):
     output = generator(prompt)[0]["generated_text"]
