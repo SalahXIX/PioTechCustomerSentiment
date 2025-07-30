@@ -15,7 +15,7 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
                "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
                "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
-model_name = "google/flan-t5-base"
+model_name = "tiiuae/falcon-rw-1b"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(
