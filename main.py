@@ -6,10 +6,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 
-st.write(f"CUDA available? {torch.cuda.is_available()}")
-st.write(f"Device count: {torch.cuda.device_count()}")
-st.write(f"Current device: {torch.cuda.current_device() if torch.cuda.is_available() else 'CPU'}")
-
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
                "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
                "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
