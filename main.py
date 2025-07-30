@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 
 intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
@@ -9,7 +10,15 @@ intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Informatio
                "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
                "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
+model_name = "google/flan-t5-base"
 
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSeq2SeqLM.from_pretrained(
+    model_name,
+    device_map=None,        
+    torch_dtype=torch.float32,  
+    low_cpu_mem_usage=False,    
+)
 device = 0 if torch.cuda.is_available() else -1
 generator = pipeline("text2text-generation", model="google/flan-t5-base", max_new_tokens=100, device=device)
 
