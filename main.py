@@ -16,7 +16,7 @@ sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused
 
 
 sentiment_model = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
-intent_classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
+intent_classifier = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-3", device=-1)
 
 def invoke_model(prompt):
     output = sentiment_model(prompt)[0]["generated_text"]
