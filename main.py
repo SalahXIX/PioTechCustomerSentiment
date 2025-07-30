@@ -30,11 +30,15 @@ Your answer (only choose from the provided list):
 
 
 Intent_Template= '''
-You are an intent Analyzer AI, you analyze the text given to you and figure out what the reason it was sent.
-You choose the intent that most closely matches the intent of the text you are provided based on the following options: {intent_list}.
-The text: {text}
-Respond with only the exact matching phrase from the list. No explanation.
-Your answer (only choose from the provided list):
+You are an Intent Classifier AI. Your task is to identify the most appropriate intent of the message.
+
+Only respond with **exactly one phrase** from the following list: {intent_list}.
+
+Do not explain your answer. Do not add extra words.
+
+The message: "{text}"
+
+Your response (only from the list):
 '''
 
 def first_interperter(Answer):
@@ -44,13 +48,10 @@ def first_interperter(Answer):
     return "Unclear"    
 
 def second_interperter(Answer):
-    Answer = Answer.strip().lower()
-    matches = difflib.get_close_matches(Answer, [i.lower() for i in intent_list], n=1, cutoff=0.6)
-    if matches:
-        for intent in intent_list:
-            if intent.lower() == matches[0]:
-                return intent
-    return "Unclear" 
+    Answer = str(Answer).strip().lower()
+    scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
+    best_match = max(scored_matches, key=lambda x: x[1])
+    return best_match[0]
 
         
 
