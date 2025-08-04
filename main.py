@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
-import difflib
 
 
 intent_list = [ "Appreciation", 
@@ -52,16 +51,7 @@ def first_interperter(Answer):
             return option
     return "Unclear"    
 
-def second_interperter(Answer):
-    Answer = str(Answer).strip().lower()
-    for intent in intent_list:
-        if intent.lower() in Answer or Answer in intent.lower():
-            return intent
-    scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
-    best_match = max(scored_matches, key=lambda x: x[1])
-    return best_match[0]
 
-        
 def Read_Texts():
     TextList = []
     for line in uploaded_file:
@@ -76,7 +66,7 @@ def Evaluate_Texts(TextList):
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
         sentiment = first_interperter(invoke_model(Sentiment_Prompt))
         Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
-        intent = second_interperter(invoke_model((Intent_Prompt)))
+        intent = invoke_model((Intent_Prompt))
         entry = {
             "Email_Text": text,
             "Sentiment": sentiment,
