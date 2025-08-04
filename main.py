@@ -5,10 +5,9 @@ from transformers import pipeline
 import difflib
 
 
-intent_list = ["Compliment", "Feedback", "Appreciation", "Request for Information", "Inquiry", 
-               "Issue Report", "Confirmation", "Access Request", "Administrative Request", "Complaint", 
-               "SLA Dispute", "Escalation Request", "Refund Request", "Suggestion / Feature Request", "Clarification", "Follow-up", 
-               "Acknowledgment", "Dispute", "Caution / Process Improvement", "Business Request"]
+intent_list = ["Feedback", "Appreciation", "Inquiry",
+               "Confirmation", "Request", "Complaint", 
+               "SLA Dispute", "Suggestion"]
 
 intent_list = sorted(intent_list, key=lambda x: -len(x))
 
@@ -48,11 +47,10 @@ def first_interperter(Answer):
     return "Unclear"    
 
 def second_interperter(Answer):
-    for option in intent_list:
-        Answer = str(Answer).strip().lower()
-        if option.lower() in Answer:
-            return option
-    return "Unclear"    
+    Answer = str(Answer).strip().lower()
+    scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
+    best_match = max(scored_matches, key=lambda x: x[1])
+    return best_match[0]
 
         
 
@@ -110,7 +108,7 @@ if input_mode == "Manual Input":
 else:
     uploaded_file = st.file_uploader("Upload a .txt or .md file", type=["txt", "md"])
     if uploaded_file is not None:
-        textlist = Read_Texts()
+        textlist = Read_Texts(uploaded_file)
 
 # Run classification
 if st.button("Classify Text"):
