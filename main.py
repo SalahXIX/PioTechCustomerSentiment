@@ -16,11 +16,11 @@ intent_list = sorted(intent_list, key=lambda x: -len(x))
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
 sentiment_model_name = "google/flan-t5-small"
-intent_model_name = "facebook/bart-large-mnli"
+intent_model_name = "cardiffnlp/twitter-roberta-base-emotion"
 @st.cache_resource
 def load_models():
     sentiment_generator = pipeline("text2text-generation", model=sentiment_model_name, device=-1)
-    intent_classifier = pipeline("zero-shot-classification", model=intent_model_name, device=-1)
+    intent_classifier = pipeline("sentiment-analysis", model=intent_model_name, device=-1)
     return sentiment_generator, intent_classifier
 
 generator, classifier = load_models()
