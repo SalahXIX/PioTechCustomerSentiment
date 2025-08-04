@@ -48,14 +48,15 @@ def first_interperter(Answer):
     return "Unclear"    
 
 def second_interperter(Answer):
-    Answer = str(Answer).strip().lower()
-    scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
-    best_match = max(scored_matches, key=lambda x: x[1])
-    return best_match[0]
+    for option in intent_list:
+        Answer = str(Answer).strip().lower()
+        if option.lower() in Answer:
+            return option
+    return "Unclear"    
 
         
 
-def Read_Texts(MarkdownPath):
+def Read_Texts():
     TextList = []
     for line in uploaded_file:
         decoded_line = line.decode('utf-8').strip()
@@ -109,7 +110,7 @@ if input_mode == "Manual Input":
 else:
     uploaded_file = st.file_uploader("Upload a .txt or .md file", type=["txt", "md"])
     if uploaded_file is not None:
-        textlist = Read_Texts(uploaded_file)
+        textlist = Read_Texts()
 
 # Run classification
 if st.button("Classify Text"):
