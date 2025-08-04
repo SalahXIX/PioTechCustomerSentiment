@@ -5,9 +5,11 @@ from transformers import pipeline
 import difflib
 
 
-intent_list = ["Feedback", "Appreciation", "Inquiry",
-               "Confirmation", "Request", "Complaint", 
-               "SLA Dispute", "Suggestion"]
+intent_list = [ "Appreciation", 
+                "Complaint", 
+                "Request", 
+                "Inquiry", 
+                "Feedback"]
 
 intent_list = sorted(intent_list, key=lambda x: -len(x))
 
@@ -35,7 +37,11 @@ Only respond with **exactly one phrase** from the following list: {intent_list}.
 
 Do not explain your answer. Do not add extra words.
 
-The message: "{text}"
+Example:
+Message: "Can you please reset my password?"
+Intent: Request
+
+Now classify this message: "{text}"
 
 Your response (only from the list):
 '''
@@ -48,12 +54,14 @@ def first_interperter(Answer):
 
 def second_interperter(Answer):
     Answer = str(Answer).strip().lower()
+    for intent in intent_list:
+        if intent.lower() in Answer or Answer in intent.lower():
+            return intent
     scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
     best_match = max(scored_matches, key=lambda x: x[1])
     return best_match[0]
 
         
-
 def Read_Texts():
     TextList = []
     for line in uploaded_file:
