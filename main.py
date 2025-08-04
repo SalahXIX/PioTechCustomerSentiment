@@ -108,7 +108,7 @@ if input_mode == "Manual Input":
 else:
     uploaded_file = st.file_uploader("Upload a .txt or .md file", type=["txt", "md"])
     if uploaded_file is not None:
-        textlist = Read_Texts(uploaded_file)
+        textlist = Read_Texts()
 
 # Run classification
 if st.button("Classify Text"):
