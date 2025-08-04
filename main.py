@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from transformers import pipeline
+import difflib
 
 
 intent_list = [ "Appreciation", 
@@ -14,8 +15,11 @@ intent_list = sorted(intent_list, key=lambda x: -len(x))
 
 sentiment_list = ["Positive", "Neutral", "Mixed feelings", "Negative", "Confused"]
 
-model_name = "google/flan-t5-small"
-generator = pipeline("text2text-generation", model=model_name, device=-1)
+sentiment_model_name = "google/flan-t5-small"
+intent_model_name = "facebook/bart-large-mnli"
+
+generator = pipeline("text2text-generation", model=sentiment_model_name, device=-1)
+classifier = pipeline("zero-shot-classification", model=intent_model_name, device=-1)
 
 def invoke_model(prompt):
     output = generator(prompt)[0]["generated_text"]
@@ -29,21 +33,6 @@ Your answer (only choose from the provided list):
 '''
 
 
-Intent_Template= '''
-You are an Intent Classifier AI. Your task is to identify the most appropriate intent of the message.
-
-Only respond with **exactly one phrase** from the following list: {intent_list}.
-
-Do not explain your answer. Do not add extra words.
-
-Example:
-Message: "Can you please reset my password?"
-Intent: Request
-
-Now classify this message: "{text}"
-
-Your response (only from the list):
-'''
 
 def first_interperter(Answer):
     for option in sentiment_list:
@@ -51,22 +40,36 @@ def first_interperter(Answer):
             return option
     return "Unclear"    
 
+def second_interperter(Answer):
+    Answer = str(Answer).strip().lower()
+    scored_matches = [(intent, difflib.SequenceMatcher(None, Answer, intent.lower()).ratio()) for intent in intent_list]
+    best_match = max(scored_matches, key=lambda x: x[1])
+    return best_match[0]
 
-def Read_Texts():
+        
+
+
+
+def Read_Texts(file):
     TextList = []
-    for line in uploaded_file:
+    for line in file:
         decoded_line = line.decode('utf-8').strip()
         if decoded_line:
             TextList.append(decoded_line)
     return TextList
+
+
+def classify_intent(text, labels):
+    result = classifier(text, labels)
+    return result["labels"][0]
 
 def Evaluate_Texts(TextList):
     results=[]
     for text in TextList:
         Sentiment_Prompt = Sentiment_Template.format(sentiment_list=sentiment_list, text=text)
         sentiment = first_interperter(invoke_model(Sentiment_Prompt))
-        Intent_Prompt = Intent_Template.format(intent_list=intent_list, text=text)
-        intent = invoke_model((Intent_Prompt))
+        intent_raw = classify_intent(text, intent_list)
+        intent = second_interperter(intent_raw)
         entry = {
             "Email_Text": text,
             "Sentiment": sentiment,
@@ -106,7 +109,7 @@ if input_mode == "Manual Input":
 else:
     uploaded_file = st.file_uploader("Upload a .txt or .md file", type=["txt", "md"])
     if uploaded_file is not None:
-        textlist = Read_Texts()
+        textlist = Read_Texts(uploaded_file)
 
 # Run classification
 if st.button("Classify Text"):
